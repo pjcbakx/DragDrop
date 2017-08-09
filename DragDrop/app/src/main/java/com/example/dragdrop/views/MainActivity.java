@@ -1,7 +1,8 @@
-package com.example.dragdrop;
+package com.example.dragdrop.views;
 
 import android.content.ClipData;
-import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -11,8 +12,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+import com.example.dragdrop.R;
+import com.example.dragdrop.models.datatypes.DraggableObject;
 
+public class MainActivity extends AppCompatActivity {
+    DraggableObject[] dragAbleObjects;
     LinearLayout area1, area2;
     TextView prompt;
 
@@ -21,6 +25,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initActivity();
+    }
+
+    private void initActivity() {
         area1 = (LinearLayout) findViewById(R.id.area1);
         area2 = (LinearLayout) findViewById(R.id.area2);
 
@@ -36,17 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }});
 
-        TypedArray arrayResources = getResources().obtainTypedArray(
-                R.array.resicon);
-
-        for (int i = 0; i < arrayResources.length(); i++) {
-            ImageView imageView = new ImageView(this);
-            imageView.setImageDrawable(arrayResources.getDrawable(i));
-            imageView.setOnLongClickListener(myOnLongClickListener);
-            area1.addView(imageView);
-        }
-
-        arrayResources.recycle();
+        setupExampleObjects();
 
         area1.setOnDragListener(myOnDragListener);
         area2.setOnDragListener(myOnDragListener);
@@ -69,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onDrag(View v, DragEvent event) {
+            View dragView = (View) event.getLocalState();
+            DraggableObject dragableObject = dragAbleObjects[dragView.getId()];
 
             String area;
             if(v == area1){
@@ -81,16 +81,18 @@ public class MainActivity extends AppCompatActivity {
 
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
-                    prompt.append("ACTION_DRAG_STARTED: " + area  + "\n");
+                    prompt.append(String.format("ACTION_DRAG_STARTED: %s for %s \n", area, dragableObject.Name));
+                    //do nothing
                     break;
                 case DragEvent.ACTION_DRAG_ENTERED:
-                    prompt.append("ACTION_DRAG_ENTERED: " + area  + "\n");
+                    prompt.append(String.format("ACTION_DRAG_ENTERED: %s for %s \n", area, dragableObject.Name));
                     break;
                 case DragEvent.ACTION_DRAG_EXITED:
-                    prompt.append("ACTION_DRAG_EXITED: " + area  + "\n");
+                    prompt.append(String.format("ACTION_DRAG_EXITED: %s for %s \n", area, dragableObject.Name));
+                    //do nothing
                     break;
                 case DragEvent.ACTION_DROP:
-                    prompt.append("ACTION_DROP: " + area  + "\n");
+                    prompt.append(String.format("ACTION_DROP: %s for %s \n", area, dragableObject.Name));
                     View view = (View)event.getLocalState();
                     LinearLayout oldParent = (LinearLayout)view.getParent();
                     oldParent.removeView(view);
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                     newParent.addView(view);
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
-                    prompt.append("ACTION_DRAG_ENDED: " + area  + "\n");
+                    prompt.append(String.format("ACTION_DRAG_ENDED: %s for %s \n", area, dragableObject.Name));
                 default:
                     break;
             }
@@ -106,4 +108,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
     };
+
+    private void setupExampleObjects() {
+        dragAbleObjects = new DraggableObject[5];
+        dragAbleObjects[0] = new DraggableObject(0, "Alert", getAndroidDrawable(android.R.drawable.ic_dialog_alert));
+        dragAbleObjects[1] = new DraggableObject(1, "Dialer", getAndroidDrawable(android.R.drawable.ic_dialog_dialer));
+        dragAbleObjects[2] = new DraggableObject(2, "Email", getAndroidDrawable(android.R.drawable.ic_dialog_email));
+        dragAbleObjects[3] = new DraggableObject(3, "Info", getAndroidDrawable(android.R.drawable.ic_dialog_info));
+        dragAbleObjects[4] = new DraggableObject(4, "Map", getAndroidDrawable(android.R.drawable.ic_dialog_map));
+
+        for (DraggableObject obj : dragAbleObjects) {
+            ImageView imageView = new ImageView(this);
+            imageView.setImageDrawable(obj.Drawable);
+            imageView.setId(obj.getID());
+            imageView.setOnLongClickListener(myOnLongClickListener);
+            area1.addView(imageView);
+        }
+    }
+
+    private Drawable getAndroidDrawable(int id){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return getResources().getDrawable(id);
+        }
+
+        return getDrawable(id);
+    }
 }
