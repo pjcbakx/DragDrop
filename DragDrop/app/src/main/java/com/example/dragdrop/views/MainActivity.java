@@ -15,11 +15,13 @@ import android.widget.TextView;
 import com.example.dragdrop.R;
 import com.example.dragdrop.models.datatypes.DraggableObject;
 
+import java.util.ArrayList;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
-    DraggableObject[] draggableObjects;
+    ArrayList<DraggableObject> draggableObjects;
     @BindView(R.id.area1) LinearLayout area1;
     @BindView(R.id.area2) LinearLayout area2;
     @BindView(R.id.prompt) TextView prompt;
@@ -47,40 +49,72 @@ public class MainActivity extends AppCompatActivity {
 
         setupExampleObjects();
 
-        area1.setOnDragListener(myOnDragListener);
-        area2.setOnDragListener(myOnDragListener);
+        area1.setOnDragListener(new DragListener());
+        area2.setOnDragListener(new DragListener());
     }
 
-    View.OnLongClickListener myOnLongClickListener = new View.OnLongClickListener() {
+    private void setupExampleObjects() {
+        draggableObjects = new ArrayList<>();
+        draggableObjects.add(draggableObjects.size(), new DraggableObject(0, "Alert", getAndroidDrawable(android.R.drawable.ic_dialog_alert)));
+        draggableObjects.add(draggableObjects.size(), new DraggableObject(1, "Dialer", getAndroidDrawable(android.R.drawable.ic_dialog_dialer)));
+        draggableObjects.add(draggableObjects.size(), new DraggableObject(2, "Email", getAndroidDrawable(android.R.drawable.ic_dialog_email)));
+        draggableObjects.add(draggableObjects.size(), new DraggableObject(3, "Info", getAndroidDrawable(android.R.drawable.ic_dialog_info)));
+        draggableObjects.add(draggableObjects.size(), new DraggableObject(4, "Map", getAndroidDrawable(android.R.drawable.ic_dialog_map)));
 
-        @Override
-        public boolean onLongClick(View v) {
-            ClipData data = ClipData.newPlainText("", "");
-            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
-            v.startDrag(data, shadowBuilder, v, 0);
-            //v.setVisibility(View.INVISIBLE);
-            return true;
+        for (DraggableObject obj : draggableObjects) {
+            ImageView imageView = new ImageView(this);
+            imageView.setImageDrawable(obj.Drawable);
+            imageView.setId(obj.getID());
+            imageView.setOnLongClickListener(new LongClickListener());
+            area1.addView(imageView);
+        }
+    }
+
+    private Drawable getAndroidDrawable(int id){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return getResources().getDrawable(id);
         }
 
-    };
+        return getDrawable(id);
+    }
 
-    View.OnDragListener myOnDragListener = new View.OnDragListener() {
+    private void moveDraggableObject(View draggableView, LinearLayout oldParent, LinearLayout newParent){
+        draggableView.setVisibility(View.VISIBLE);
+
+        oldParent.removeView(draggableView);
+        newParent.addView(draggableView);
+    }
+
+    private class LongClickListener implements View.OnLongClickListener{
 
         @Override
-        public boolean onDrag(View v, DragEvent event) {
-            View dragView = (View) event.getLocalState();
-            DraggableObject draggableObject = draggableObjects[dragView.getId()];
+        public boolean onLongClick(View view) {
+            ClipData data = ClipData.newPlainText("", "");
+            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+            view.startDrag(data, shadowBuilder, view, 0);
+            view.setVisibility(View.INVISIBLE);
+            return true;
+        }
+    }
+
+    private class DragListener implements View.OnDragListener{
+
+        @Override
+        public boolean onDrag(View view, DragEvent dragEvent) {
+            View dragView = (View) dragEvent.getLocalState();
+            int viewID = dragView.getId();
+            DraggableObject draggableObject = draggableObjects.get(viewID);
 
             String area;
-            if(v == area1){
+            if (view == area1) {
                 area = "area1";
-            }else if(v == area2){
+            } else if (view == area2) {
                 area = "area2";
-            }else{
+            } else {
                 area = "unknown";
             }
 
-            switch (event.getAction()) {
+            switch (dragEvent.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
                     prompt.append(String.format("ACTION_DRAG_STARTED: %s for %s \n", area, draggableObject.Name));
                     //do nothing
@@ -94,11 +128,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case DragEvent.ACTION_DROP:
                     prompt.append(String.format("ACTION_DROP: %s for %s \n", area, draggableObject.Name));
-                    View view = (View)event.getLocalState();
-                    LinearLayout oldParent = (LinearLayout)view.getParent();
-                    oldParent.removeView(view);
-                    LinearLayout newParent = (LinearLayout)v;
-                    newParent.addView(view);
+                    moveDraggableObject(dragView, (LinearLayout) dragView.getParent(), (LinearLayout) view);
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
                     prompt.append(String.format("ACTION_DRAG_ENDED: %s for %s \n", area, draggableObject.Name));
@@ -107,31 +137,5 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }
-
-    };
-
-    private void setupExampleObjects() {
-        draggableObjects = new DraggableObject[5];
-        draggableObjects[0] = new DraggableObject(0, "Alert", getAndroidDrawable(android.R.drawable.ic_dialog_alert));
-        draggableObjects[1] = new DraggableObject(1, "Dialer", getAndroidDrawable(android.R.drawable.ic_dialog_dialer));
-        draggableObjects[2] = new DraggableObject(2, "Email", getAndroidDrawable(android.R.drawable.ic_dialog_email));
-        draggableObjects[3] = new DraggableObject(3, "Info", getAndroidDrawable(android.R.drawable.ic_dialog_info));
-        draggableObjects[4] = new DraggableObject(4, "Map", getAndroidDrawable(android.R.drawable.ic_dialog_map));
-
-        for (DraggableObject obj : draggableObjects) {
-            ImageView imageView = new ImageView(this);
-            imageView.setImageDrawable(obj.Drawable);
-            imageView.setId(obj.getID());
-            imageView.setOnLongClickListener(myOnLongClickListener);
-            area1.addView(imageView);
-        }
-    }
-
-    private Drawable getAndroidDrawable(int id){
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return getResources().getDrawable(id);
-        }
-
-        return getDrawable(id);
     }
 }

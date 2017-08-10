@@ -11,9 +11,6 @@ android {
         versionName "1.0"
     }
     buildTypes {
-        debug {
-            minifyEnabled true
-        }
         release {
             minifyEnabled true
             shrinkResources true
