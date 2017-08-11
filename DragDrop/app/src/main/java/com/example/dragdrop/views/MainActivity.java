@@ -1,8 +1,10 @@
 package com.example.dragdrop.views;
 
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -78,6 +80,48 @@ public class MainActivity extends AppCompatActivity {
         return getDrawable(id);
     }
 
+    private void createAlertDialog(String title, String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setMessage(message)
+                .setTitle(title);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void createOptionAlertDialog(String title, String[] options){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // The 'which' argument contains the index position
+                // of the selected item
+            }
+        }).setTitle(title);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private DraggableObject getDraggableObjectOfArea(LinearLayout area){
+        if(area.getChildCount() == 1){
+            View view = area.getChildAt(0);
+            int viewID = view.getId();
+            return draggableObjects.get(viewID);
+        }
+        return null;
+    }
+
     private class LongClickListener implements View.OnLongClickListener {
 
         @Override
@@ -101,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             int viewID = view.getId();
             DraggableObject draggableObject = draggableObjects.get(viewID);
 
-            Toast.makeText(MainActivity.this, String.format("This is object %s", draggableObject.Name), Toast.LENGTH_LONG).show();
+            createAlertDialog("Info", String.format("%s: %s", "Name", draggableObject.Name));
         }
     }
 
@@ -135,9 +179,15 @@ public class MainActivity extends AppCompatActivity {
                         newParent.addView(dragView);
                     }
                     else {
-                        //Do something with the 2 items
                         if(newParent != oldParent){
-                            Toast.makeText(MainActivity.this, "Only 1 item is allowed", Toast.LENGTH_LONG).show();
+                            DraggableObject destinationObject = getDraggableObjectOfArea(newParent);
+                            if(destinationObject != null){
+                                String[] options = {"Attack", "Combine"};
+                                createOptionAlertDialog(String.format("What do you want to do with %s on %s", draggableObject.Name, destinationObject.Name), options);
+                            }
+                            else {
+                                Toast.makeText(MainActivity.this, "Problem getting draggable object", Toast.LENGTH_LONG).show();
+                            }
                         }
                     }
                     break;
