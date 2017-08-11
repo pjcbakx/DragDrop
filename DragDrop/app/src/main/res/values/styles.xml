@@ -19,7 +19,10 @@
         <item name="android:textColorPrimary">#FFFFFF</item>
         <!-- Used for the background -->
         <item name="android:background">#4CAF50</item>
+        <!-- Used for the title -->
         <item name="android:windowTitleStyle">@style/MyTitleTextStyle</item>
+        <!-- Used for the items -->
+        <item name="textColorAlertDialogListItem">@color/Pink</item>
     </style>
 
     <style name="MyTitleTextStyle">
