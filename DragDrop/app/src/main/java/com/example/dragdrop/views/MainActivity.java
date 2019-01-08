@@ -73,10 +73,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Drawable getAndroidDrawable(int id){
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return getResources().getDrawable(id);
-        }
-
         return getDrawable(id);
     }
 

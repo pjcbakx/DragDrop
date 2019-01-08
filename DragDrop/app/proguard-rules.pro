@@ -16,6 +16,15 @@
 #   public *;
 #}
 
+-keepnames class ** { *; }
+
+-keep class android.support.** { *; }
+-keep interface android.support.** { *; }
+-keepattributes SourceFile,LineNumberTable
+
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
